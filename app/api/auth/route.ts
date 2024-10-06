@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/api/auth/route.js
 import { TwitterApi } from 'twitter-api-v2';
 import { PrismaClient } from '@prisma/client';

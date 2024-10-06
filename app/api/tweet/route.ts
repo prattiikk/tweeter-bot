@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TwitterApi } from 'twitter-api-v2';
 import { PrismaClient } from '@prisma/client';
 
