@@ -10,7 +10,7 @@ const twitterClient = new TwitterApi({
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-const callbackURL = `${process.env.NEXT_PUBLIC_BASE_URL}/api/callback`;
+const callbackURL = `http://localhost:3000/api/callback`;
 
 export async function GET() {
     try {
