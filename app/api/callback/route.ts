@@ -1,10 +1,9 @@
-// pages/api/callback.js
+// app/api/callback/route.js
 import { TwitterApi } from 'twitter-api-v2';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Initialize Twitter client
 const twitterClient = new TwitterApi({
     clientId: process.env.TWITTER_CLIENT_ID,
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
@@ -12,9 +11,11 @@ const twitterClient = new TwitterApi({
 
 const callbackURL = `${process.env.NEXT_PUBLIC_BASE_URL}/api/callback`;
 
-export default async function handler(req, res) {
+export async function GET(request) {
     try {
-        const { state, code } = req.query;
+        const { searchParams } = new URL(request.url);
+        const state = searchParams.get('state');
+        const code = searchParams.get('code');
 
         // Retrieve verifier and state from Prisma
         const token = await prisma.token.findFirst({
@@ -22,7 +23,9 @@ export default async function handler(req, res) {
         });
 
         if (!token || state !== token.state) {
-            return res.status(400).json({ error: 'State mismatch or not found' });
+            return new Response(JSON.stringify({ error: 'State mismatch or not found' }), {
+                status: 400,
+            });
         }
 
         // Complete Twitter OAuth flow
@@ -48,9 +51,12 @@ export default async function handler(req, res) {
         // Get Twitter user data
         const { data } = await loggedClient.v2.me();
 
-        res.status(200).json(data);
+        return new Response(JSON.stringify(data), { status: 200 });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error during Twitter login' });
+        return new Response(
+            JSON.stringify({ error: 'Error during Twitter login' }),
+            { status: 500 }
+        );
     }
 }

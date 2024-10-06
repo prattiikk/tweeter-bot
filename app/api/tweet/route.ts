@@ -1,6 +1,4 @@
-// pages/api/tweet.js
 import { TwitterApi } from 'twitter-api-v2';
-// import { Configuration, OpenAIApi } from 'openai';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -11,21 +9,16 @@ const twitterClient = new TwitterApi({
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// // Initialize OpenAI client
-// const openai = new OpenAIApi(
-//   new Configuration({
-//     organization: process.env.OPENAI_ORG,
-//     apiKey: process.env.OPENAI_SECRET,
-//   })
-// );
-
-export default async function handler(req, res) {
+export async function POST() {
   try {
     // Retrieve refresh token from Prisma
     const token = await prisma.token.findFirst();
 
     if (!token || !token.refreshToken) {
-      return res.status(400).json({ error: 'No valid refresh token found' });
+      return new Response(
+        JSON.stringify({ error: 'No valid refresh token found' }),
+        { status: 400 }
+      );
     }
 
     // Refresh OAuth2 tokens
@@ -44,21 +37,15 @@ export default async function handler(req, res) {
       },
     });
 
-    // // Generate tweet content using OpenAI
-    // const nextTweet = await openai.createCompletion({
-    //   model: 'text-davinci-003',
-    //   prompt: 'Tweet something cool for #techtwitter',
-    //   max_tokens: 64,
-    // });
+    // Post a generic tweet
+    const { data } = await refreshedClient.v2.tweet('Hello, world! This is an automated tweet.');
 
-    // Post tweet to Twitter
-    // const { data } = await refreshedClient.v2.tweet(nextTweet.data.choices[0].text);
-    const { data } = await refreshedClient.v2.tweet("hi there !");
-
-
-    res.status(200).json(data);
+    return new Response(JSON.stringify(data), { status: 200 });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error posting tweet' });
+    return new Response(
+      JSON.stringify({ error: 'Error posting tweet' }),
+      { status: 500 }
+    );
   }
 }
